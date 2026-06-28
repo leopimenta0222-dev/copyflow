@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* ---- Tokens: CopyFlow — Mesh Aurora ---- */
+@theme {
+  --color-bg: #0d1018;
+  --color-surface: #161b26;
+  --color-surface-2: #1b2230;
+  --color-line: #232c3d;
+  --color-line-strong: #324056;
+  --color-text: #eef1f6;
+  --color-muted: #9aa6bd;
+  --color-faint: #5d6b85;
+  --color-teal: #2dd4bf;
+  --color-violet: #7c7cff;
+
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-image:
+    radial-gradient(50% 40% at 85% 0%, rgba(45, 212, 191, 0.1), transparent 70%),
+    radial-gradient(45% 45% at 5% 100%, rgba(124, 124, 255, 0.1), transparent 70%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.font-mono { font-family: var(--font-mono); }
+
+.grad { background: linear-gradient(90deg, var(--color-teal), var(--color-violet)); }
+.grad-text {
+  background: linear-gradient(90deg, var(--color-teal), var(--color-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+::selection { background: var(--color-violet); color: #0d1018; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: #283246; border-radius: 999px; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal { animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* shimmer pro skeleton de "gerando…" */
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after {
+  content: "";
+  position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(124, 124, 255, 0.12), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  html { scroll-behavior: auto; }
+}
