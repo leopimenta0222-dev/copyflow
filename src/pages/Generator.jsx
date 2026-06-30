@@ -101,7 +101,7 @@ export function Generator() {
               {result.demo && (
                 <div className="flex items-start gap-2.5 rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-muted)]">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-violet)]" />
-                  <span>Exemplo de demonstração. Em produção, configure a <span className="font-mono text-[var(--color-text)]">ANTHROPIC_API_KEY</span> no servidor para gerar com IA real.</span>
+                  <span>Exemplo de demonstração. Em produção, configure a <span className="font-mono text-[var(--color-text)]">GROQ_API_KEY</span> no servidor para gerar com IA real.</span>
                 </div>
               )}
 

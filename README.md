@@ -1,6 +1,6 @@
 # ✦ CopyFlow — conteúdo de marketing com IA
 
-SaaS que gera **copy de marketing com IA** (Claude): descrições de produto, legendas de
+SaaS que gera **copy de marketing com IA**: descrições de produto, legendas de
 Instagram, anúncios, e-mails, headlines e bios — no **tom** e **idioma** escolhidos, com
 **3 variações** prontas para copiar. Login, histórico e favoritos inclusos. Projeto de
 portfólio com o detalhe que mais pesa num SaaS de IA: **a chave da API fica protegida num
@@ -37,19 +37,19 @@ back-end serverless**, nunca no front-end.
 
 - **Front:** React 19 + Vite + Tailwind CSS v4 (tema *Mesh Aurora*)
 - **Estado de servidor:** TanStack Query · **Formulários:** React Hook Form + Zod
-- **IA:** **Claude** (`@anthropic-ai/sdk`, modelo `claude-sonnet-4-6`) via **função serverless**
+- **IA:** **Groq** (modelo **Llama 3.3 70B**, gratuito) via **função serverless**
 - **Back:** Supabase (PostgreSQL + Auth + RLS) — histórico de gerações
 - **Deploy:** Vercel (`/api` como funções serverless)
 
 ## 🧠 Destaques de arquitetura
 
-- **Chave da IA protegida no servidor.** O front **nunca** vê a `ANTHROPIC_API_KEY`. Toda
-  geração passa por `POST /api/generate` — a função monta o prompt, chama o Claude e devolve
+- **Chave da IA protegida no servidor.** O front **nunca** vê a `GROQ_API_KEY`. Toda
+  geração passa por `POST /api/generate` — a função monta o prompt, chama a Groq e devolve
   só as variações. Em produção isso vira uma Vercel Function; no `npm run dev`, um middleware
   do Vite serve o mesmo handler de `/api`.
-- **Demo sempre-no-ar com fallback.** Sem `ANTHROPIC_API_KEY`, a função devolve exemplos
-  realistas montados a partir do contexto (HTTP 200, `demo: true`) — o link do portfólio
-  funciona mesmo sem custo de API. Com a chave, gera com IA de verdade, sem mudar o front.
+- **Demo sempre-no-ar com fallback.** Sem `GROQ_API_KEY` — ou se a IA atingir o limite de uso —
+  a função devolve exemplos realistas montados a partir do contexto (HTTP 200, `demo: true`),
+  então o link **nunca** quebra. Com a chave, gera com IA de verdade, sem mudar o front.
 - **Prompt testado (TDD).** O construtor de prompt e o parser de variações têm testes
   (`vitest`): o parser lê o array JSON do modelo e tem fallback para listas numeradas.
 - **Modo demo de dados.** Sem Supabase, histórico/auth rodam em localStorage (com gerações
@@ -66,10 +66,10 @@ npm run test     # testes do prompt/parser e da função /api (vitest)
 npm run build
 ```
 
-### IA real (Claude)
-1. Pegue uma chave em [console.anthropic.com](https://console.anthropic.com).
-2. No `.env`: `ANTHROPIC_API_KEY=sk-ant-…` **(somente servidor — nunca prefixe com `VITE_`)**.
-3. `npm run dev` — as gerações passam a usar o Claude de verdade.
+### IA real (Groq — gratuita)
+1. Crie uma chave grátis em [console.groq.com](https://console.groq.com) (login com Google, sem cartão).
+2. No `.env`: `GROQ_API_KEY=gsk_…` **(somente servidor — nunca prefixe com `VITE_`)**.
+3. `npm run dev` — as gerações passam a usar o Llama 3.3 70B de verdade.
 
 ### Backend real (Supabase — histórico e login)
 1. Crie um projeto grátis em [supabase.com](https://supabase.com).
@@ -79,7 +79,7 @@ npm run build
 
 ## 📦 Deploy (Vercel)
 Importe o repositório na Vercel (Vite + funções `/api` detectadas automaticamente).
-Configure as variáveis: `ANTHROPIC_API_KEY` (server), e opcionalmente
+Configure as variáveis: `GROQ_API_KEY` (server), e opcionalmente
 `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. Sem elas, a Vercel publica a demo
 em modo local — sempre funcional.
 

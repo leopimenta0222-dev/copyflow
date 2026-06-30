@@ -13,7 +13,7 @@ function mockRes() {
 describe('/api/generate', () => {
   beforeEach(() => {
     // Sem chave configurada → caminho demo (estado padrão do portfólio).
-    delete process.env.ANTHROPIC_API_KEY
+    delete process.env.GROQ_API_KEY
   })
 
   test('sem chave: devolve fallback de exemplo (demo: true)', async () => {
