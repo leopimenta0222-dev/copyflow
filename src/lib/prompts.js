@@ -1,7 +1,7 @@
 // Construtor de prompt + parser de variações para a geração de conteúdo.
 // Fica em src/lib (e não em /api) porque é importado tanto pela função
 // serverless quanto pelos testes — é lógica pura, sem segredos.
-import { getContentType } from './contentTypes'
+import { getContentType } from './contentTypes.js'
 
 const TOM = {
   profissional: 'profissional e confiável',
