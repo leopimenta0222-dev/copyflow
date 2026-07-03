@@ -9,7 +9,9 @@ describe('buildMessages', () => {
 
   test('reflete o idioma escolhido no system prompt', () => {
     const { system } = buildMessages({ tipo: 'descricao', contexto: { produto: 'Tênis X' }, idioma: 'en' })
-    expect(system.toLowerCase()).toContain('inglês')
+    // Prompt inteiro em inglês → a diretiva de idioma menciona "English".
+    expect(system.toLowerCase()).toContain('english')
+    expect(system.toLowerCase()).not.toContain('português')
   })
 
   test('pede exatamente n variações', () => {
