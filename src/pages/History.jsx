@@ -3,14 +3,18 @@ import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ChevronDown, Star, Wand2, History as HistoryIcon } from 'lucide-react'
-import { CONTENT_TYPES, getContentType } from '../lib/contentTypes'
+import { getContentTypes, getContentTypeL } from '../lib/contentTypes'
 import { typeIcon } from '../lib/icons'
 import { useGenerations, useToggleFavorite } from '../hooks/data'
+import { useLang } from '../context/LangProvider'
 import { Container, Card, Button, Badge, Loading, EmptyState, cx } from '../components/ui'
 import { VariationCard } from '../components/VariationCard'
 
-const TOM_LABEL = { profissional: 'Profissional', descontraido: 'Descontraído', persuasivo: 'Persuasivo', divertido: 'Divertido' }
-const IDIOMA_LABEL = { pt: 'Português', en: 'Inglês', es: 'Espanhol' }
+// Data localizada: PT usa locale ptBR e o literal "de"; EN usa o padrão (en-US).
+const formatDate = (iso, lang) =>
+  lang === 'en'
+    ? format(new Date(iso), 'MMM d, HH:mm')
+    : format(new Date(iso), "d 'de' MMM, HH:mm", { locale: ptBR })
 
 function Chip({ active, onClick, children }) {
   return (
@@ -31,7 +35,8 @@ function Chip({ active, onClick, children }) {
 
 function GenerationRow({ gen, onToggleFav }) {
   const [open, setOpen] = useState(false)
-  const ct = getContentType(gen.tipo)
+  const { lang, t } = useLang()
+  const ct = getContentTypeL(gen.tipo, lang)
   const Icon = typeIcon(ct?.icon)
 
   return (
@@ -43,10 +48,10 @@ function GenerationRow({ gen, onToggleFav }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate font-semibold">{ct?.label || gen.tipo}</span>
-            <Badge tone="neutral">{gen.variacoes.length} variações</Badge>
+            <Badge tone="neutral">{gen.variacoes.length} {t('gen.variations.count')}</Badge>
           </div>
           <p className="mt-0.5 truncate text-xs text-[var(--color-faint)]">
-            {format(new Date(gen.criado_em), "d 'de' MMM, HH:mm", { locale: ptBR })} · {TOM_LABEL[gen.tom] || gen.tom} · {IDIOMA_LABEL[gen.idioma] || gen.idioma}
+            {formatDate(gen.criado_em, lang)} · {t(`tone.${gen.tom}`)} · {t(`idioma.${gen.idioma}`)}
           </p>
         </div>
         <span
@@ -54,7 +59,7 @@ function GenerationRow({ gen, onToggleFav }) {
           tabIndex={0}
           onClick={(e) => { e.stopPropagation(); onToggleFav(gen) }}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onToggleFav(gen) } }}
-          title={gen.favorito ? 'Remover dos favoritos' : 'Favoritar'}
+          title={gen.favorito ? t('variation.unfavorite') : t('variation.favorite')}
           className={cx(
             'grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg transition-colors',
             gen.favorito ? 'text-[var(--color-teal)]' : 'text-[var(--color-faint)] hover:text-[var(--color-text)]',
@@ -82,6 +87,7 @@ export function History() {
   const [filter, setFilter] = useState('todos')
   const { data: generations, isLoading } = useGenerations()
   const toggleMut = useToggleFavorite()
+  const { lang, t } = useLang()
 
   const onToggleFav = (gen) => toggleMut.mutate({ id: gen.id, favorito: !gen.favorito })
 
@@ -91,29 +97,29 @@ export function History() {
     return g.tipo === filter
   })
 
-  const usedTypes = CONTENT_TYPES.filter((ct) => (generations || []).some((g) => g.tipo === ct.id))
+  const usedTypes = getContentTypes(lang).filter((ct) => (generations || []).some((g) => g.tipo === ct.id))
 
   return (
     <Container className="py-8 sm:py-12">
       <div className="mb-6">
-        <h1 className="font-display text-3xl font-extrabold sm:text-4xl">Histórico</h1>
-        <p className="mt-1.5 text-[var(--color-muted)]">Tudo o que você já gerou — revisite, copie e favorite.</p>
+        <h1 className="font-display text-3xl font-extrabold sm:text-4xl">{t('history.title')}</h1>
+        <p className="mt-1.5 text-[var(--color-muted)]">{t('history.subtitle')}</p>
       </div>
 
       {isLoading ? (
-        <Loading label="Carregando histórico…" />
+        <Loading label={t('history.loading')} />
       ) : !generations?.length ? (
         <EmptyState
           icon={HistoryIcon}
-          title="Nada por aqui ainda"
-          text="Suas gerações vão aparecer nesta lista assim que você criar a primeira."
-          action={<Button as={Link} to="/app" className="mt-1"><Wand2 className="h-4 w-4" /> Gerar conteúdo</Button>}
+          title={t('history.empty.title')}
+          text={t('history.empty.text')}
+          action={<Button as={Link} to="/app" className="mt-1"><Wand2 className="h-4 w-4" /> {t('history.empty.action')}</Button>}
         />
       ) : (
         <>
           <div className="mb-5 flex flex-wrap gap-2">
-            <Chip active={filter === 'todos'} onClick={() => setFilter('todos')}>Todos</Chip>
-            <Chip active={filter === 'favoritos'} onClick={() => setFilter('favoritos')}>★ Favoritos</Chip>
+            <Chip active={filter === 'todos'} onClick={() => setFilter('todos')}>{t('history.filter.all')}</Chip>
+            <Chip active={filter === 'favoritos'} onClick={() => setFilter('favoritos')}>{t('history.filter.favorites')}</Chip>
             {usedTypes.map((ct) => (
               <Chip key={ct.id} active={filter === ct.id} onClick={() => setFilter(ct.id)}>{ct.label}</Chip>
             ))}
@@ -124,7 +130,7 @@ export function History() {
               {list.map((gen) => <GenerationRow key={gen.id} gen={gen} onToggleFav={onToggleFav} />)}
             </div>
           ) : (
-            <EmptyState icon={Star} title="Nenhuma geração neste filtro" text="Tente outro filtro ou favorite algumas gerações." />
+            <EmptyState icon={Star} title={t('history.filter.empty.title')} text={t('history.filter.empty.text')} />
           )}
         </>
       )}

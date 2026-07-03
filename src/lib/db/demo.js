@@ -1,8 +1,14 @@
 // Backend "demo" — usado quando o Supabase não está configurado.
 // Guarda histórico e sessão no localStorage. Conta-demo: dono@copyflow.com / copyflow123.
+//
+// i18n: o histórico semeado tem versão PT e EN. Cada idioma da interface usa a
+// SUA própria chave de localStorage, então trocar PT↔EN mostra um histórico de
+// exemplo no idioma certo (sem misturar nem sobrescrever o outro).
 const LS_GENERATIONS = 'cf.demo.generations'
+const LS_GENERATIONS_EN = 'cf.demo.generations.en'
 const LS_SESSION = 'cf.demo.session'
 const LS_ACCOUNTS = 'cf.demo.accounts'
+const LS_LANG = 'copyflow.lang'
 
 const DEMO_EMAIL = 'dono@copyflow.com'
 const DEMO_SENHA = 'copyflow123'
@@ -12,8 +18,13 @@ const read = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JS
 const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { /* ignore */ } }
 const daysAgo = (d) => { const t = new Date(); t.setDate(t.getDate() - d); t.setHours(10 + (d % 8), (d * 7) % 60, 0, 0); return t.toISOString() }
 
+const currentLang = () => {
+  try { const l = localStorage.getItem(LS_LANG); return l === 'en' ? 'en' : 'pt' } catch { return 'pt' }
+}
+const genKey = () => (currentLang() === 'en' ? LS_GENERATIONS_EN : LS_GENERATIONS)
+
 // Algumas gerações de exemplo, pra a tela de histórico não nascer vazia.
-const SEED = [
+const SEED_PT = [
   {
     tipo: 'legenda', tom: 'divertido', idioma: 'pt', favorito: true, criado_em: daysAgo(1),
     input_json: { tema: 'lançamento da coleção de inverno', objetivo: 'engajar', hashtags: 'sim' },
@@ -52,15 +63,57 @@ const SEED = [
   },
 ]
 
+// Mesmo histórico de exemplo, em inglês (idioma de saída 'en').
+const SEED_EN = [
+  {
+    tipo: 'legenda', tom: 'divertido', idioma: 'en', favorito: true, criado_em: daysAgo(1),
+    input_json: { tema: 'winter collection launch', objetivo: 'engage', hashtags: 'yes' },
+    output_json: { variacoes: [
+      'Stop everything: the winter collection just landed. ✨\n\nWe sweated every piece with you in mind — and staying warm has never looked this good. Comment your favorite below! 👇\n\n#winter #newcollection #musthave #style',
+      'You asked, we listened. 🧣\n\nWinter collection available now — comfort and attitude in a single look. Save this post! 📌\n\n#winter #fashion #launch',
+      'The season of cozy looks is here. 🤎\n\nNew winter collection is live. Which piece will be yours? 👀\n\n#winter #newcollection #ootd',
+    ] },
+  },
+  {
+    tipo: 'descricao', tom: 'persuasivo', idioma: 'en', favorito: false, criado_em: daysAgo(2),
+    input_json: { produto: '500ml Insulated Mug', caracteristicas: 'keeps temperature for 12h, stainless steel, BPA-free', publico: 'people working from home' },
+    output_json: { variacoes: [
+      'Meet the 500ml Insulated Mug: keeps temperature for 12h, stainless steel, BPA-free. Built for people working from home. Your coffee stays hot from the first sip to the last — no excuse to leave your desk.',
+      'The 500ml Insulated Mug isn\'t just another mug. It\'s 12 hours of perfect temperature in BPA-free stainless steel. Grab yours before it sells out.',
+      'Why the 500ml Insulated Mug? Because it pairs 12-hour thermal tech with a design that fits your desk. Click and feel the difference on the first sip.',
+    ] },
+  },
+  {
+    tipo: 'headline', tom: 'profissional', idioma: 'en', favorito: true, criado_em: daysAgo(4),
+    input_json: { assunto: 'personal finance app', angulo: 'simplicity' },
+    output_json: { variacoes: [
+      'Personal finance app: everything you need, all in one place — simplicity',
+      'The simplest way to get started with a personal finance app — simplicity',
+      'Stop putting it off. The personal finance app just got easy — simplicity',
+    ] },
+  },
+  {
+    tipo: 'email', tom: 'persuasivo', idioma: 'en', favorito: false, criado_em: daysAgo(6),
+    input_json: { oferta: 'career mentorship', gatilho: 'last spots' },
+    output_json: { variacoes: [
+      'Subject: This one\'s for you 👀\n\nHey! I set something special aside: career mentorship (last spots). In just a few minutes you\'ll see why so many people are already jumping in — and how to start right now.\n\nClick the button below while the deal is still on.',
+      'Subject: career mentorship — last call\n\nI don\'t want you to miss this. Career mentorship comes with a deal that won\'t last (last spots).\n\nIt takes 2 minutes to lock in. Ready?',
+      'Subject: I decided to write to you personally\n\nIf you\'ve been waiting for the right moment for career mentorship, it\'s here (last spots). I\'ve gathered everything you need to know on a single page.\n\nTake a look — I think you\'ll like it.',
+    ] },
+  },
+]
+
 function loadGenerations() {
-  let g = read(LS_GENERATIONS, null)
+  const key = genKey()
+  let g = read(key, null)
   if (!g) {
-    g = SEED.map((s) => ({ id: uid(), user_id: 'demo', ...s }))
-    write(LS_GENERATIONS, g)
+    const seed = currentLang() === 'en' ? SEED_EN : SEED_PT
+    g = seed.map((s) => ({ id: uid(), user_id: 'demo', ...s }))
+    write(key, g)
   }
   return g
 }
-const saveGenerations = (g) => write(LS_GENERATIONS, g)
+const saveGenerations = (g) => write(genKey(), g)
 
 function loadAccounts() {
   let a = read(LS_ACCOUNTS, null)

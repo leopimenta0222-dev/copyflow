@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -6,21 +6,54 @@ import { z } from 'zod'
 import { Wand2, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthProvider'
 import { useToast } from '../context/ToastProvider'
+import { useLang } from '../context/LangProvider'
 import { Button, Input, Field, cx } from '../components/ui'
 
-const schema = z.object({
-  nome: z.string().optional(),
-  email: z.string().email('E-mail inválido.'),
-  senha: z.string().min(6, 'Mínimo de 6 caracteres.'),
-})
+// Alternador PT | EN compacto (o Login não usa o Header global).
+function LangSwitch() {
+  const { lang, setLang, t } = useLang()
+  return (
+    <div
+      role="group"
+      aria-label={t('lang.switch')}
+      className="absolute right-5 top-5 inline-flex items-center rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)] p-0.5 text-xs font-semibold"
+    >
+      {['pt', 'en'].map((code) => (
+        <button
+          key={code}
+          type="button"
+          onClick={() => setLang(code)}
+          aria-pressed={lang === code}
+          className={cx(
+            'rounded-md px-2 py-1 uppercase tracking-wide transition-colors',
+            lang === code ? 'grad text-[#0a0d14]' : 'text-[var(--color-muted)] hover:text-[var(--color-text)]',
+          )}
+        >
+          {code}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 export function Login() {
   const [mode, setMode] = useState('entrar') // 'entrar' | 'cadastro'
   const { signIn, signUp } = useAuth()
   const toast = useToast()
+  const { t } = useLang()
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from || '/app'
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        nome: z.string().optional(),
+        email: z.string().email(t('login.error.email')),
+        senha: z.string().min(6, t('login.error.password')),
+      }),
+    [t],
+  )
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
@@ -31,18 +64,19 @@ export function Login() {
     try {
       if (mode === 'entrar') await signIn(values.email, values.senha)
       else await signUp({ email: values.email, senha: values.senha, nome: values.nome })
-      toast.show(mode === 'entrar' ? 'Bem-vindo de volta!' : 'Conta criada com sucesso!')
+      toast.show(mode === 'entrar' ? t('login.toast.welcome') : t('login.toast.created'))
       navigate(from, { replace: true })
     } catch (e) {
-      toast.show(e.message || 'Não foi possível continuar.', 'error')
+      toast.show(e.message || t('login.toast.failed'), 'error')
     }
   }
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-5 py-12">
       <Link to="/" className="absolute left-5 top-5 inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]">
-        <ArrowLeft className="h-4 w-4" /> Início
+        <ArrowLeft className="h-4 w-4" /> {t('login.back')}
       </Link>
+      <LangSwitch />
 
       <div className="reveal w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
@@ -53,12 +87,12 @@ export function Login() {
             Copy<span className="grad-text">Flow</span>
           </h1>
           <p className="mt-1.5 text-sm text-[var(--color-muted)]">
-            {mode === 'entrar' ? 'Entre para gerar conteúdo com IA.' : 'Crie sua conta e comece a gerar.'}
+            {mode === 'entrar' ? t('login.subtitle.signin') : t('login.subtitle.signup')}
           </p>
         </div>
 
         <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] p-1">
-          {[['entrar', 'Entrar'], ['cadastro', 'Criar conta']].map(([key, label]) => (
+          {[['entrar', t('login.tab.signin')], ['cadastro', t('login.tab.signup')]].map(([key, label]) => (
             <button
               key={key}
               onClick={() => setMode(key)}
@@ -74,23 +108,23 @@ export function Login() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {mode === 'cadastro' && (
-            <Field label="Nome" error={errors.nome?.message}>
-              <Input placeholder="Seu nome" {...register('nome')} />
+            <Field label={t('login.field.name')} error={errors.nome?.message}>
+              <Input placeholder={t('login.field.name.placeholder')} {...register('nome')} />
             </Field>
           )}
-          <Field label="E-mail" error={errors.email?.message}>
-            <Input type="email" placeholder="voce@email.com" {...register('email')} />
+          <Field label={t('login.field.email')} error={errors.email?.message}>
+            <Input type="email" placeholder={t('login.field.email.placeholder')} {...register('email')} />
           </Field>
-          <Field label="Senha" error={errors.senha?.message}>
+          <Field label={t('login.field.password')} error={errors.senha?.message}>
             <Input type="password" placeholder="••••••••" {...register('senha')} />
           </Field>
           <Button type="submit" className="w-full" size="lg" loading={isSubmitting}>
-            {mode === 'entrar' ? 'Entrar' : 'Criar conta'}
+            {mode === 'entrar' ? t('login.submit.signin') : t('login.submit.signup')}
           </Button>
         </form>
 
         <p className="mt-5 rounded-xl border border-dashed border-[var(--color-line)] bg-[var(--color-surface)]/50 px-4 py-3 text-center text-xs text-[var(--color-muted)]">
-          Conta de demonstração já preenchida:<br />
+          {t('login.demo.hint')}<br />
           <span className="font-mono text-[var(--color-text)]">dono@copyflow.com</span> · <span className="font-mono text-[var(--color-text)]">copyflow123</span>
         </p>
       </div>

@@ -1,11 +1,13 @@
-import { CONTENT_TYPES } from '../lib/contentTypes'
+import { getContentTypes } from '../lib/contentTypes'
+import { useLang } from '../context/LangProvider'
 import { typeIcon } from '../lib/icons'
 import { cx } from './ui'
 
 export function TypePicker({ value, onChange }) {
+  const { lang } = useLang()
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {CONTENT_TYPES.map((ct) => {
+      {getContentTypes(lang).map((ct) => {
         const Icon = typeIcon(ct.icon)
         const active = value === ct.id
         return (

@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react'
+import { useLang } from '../context/LangProvider'
 import { Card } from './ui'
 
 const Bar = ({ w = 'w-full' }) => (
@@ -7,11 +8,12 @@ const Bar = ({ w = 'w-full' }) => (
 
 // Skeleton mostrado enquanto a geração roda — n cards "materializando".
 export function Shimmer({ count = 3 }) {
+  const { t } = useLang()
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
         <Sparkles className="h-4 w-4 animate-pulse text-[var(--color-teal)]" />
-        <span>Gerando variações com IA…</span>
+        <span>{t('shimmer.generating')}</span>
       </div>
       <div className="grid gap-4">
         {Array.from({ length: count }).map((_, i) => (
